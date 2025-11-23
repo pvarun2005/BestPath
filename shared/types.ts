@@ -32,6 +32,24 @@ export interface Route {
   preferenceScore: number; // 0-100
   estimatedGasCost?: number;
   trafficFactor: 'low' | 'medium' | 'high';
+  legs?: Leg[];
+}
+
+export interface Leg {
+  distance: number;
+  duration: number;
+  steps: Step[];
+}
+
+export interface Step {
+  distance: number;
+  duration: number;
+  name?: string;
+  maneuver: {
+    instruction: string;
+    type: string;
+    modifier?: string;
+  };
 }
 
 export interface Waypoint {

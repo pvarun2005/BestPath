@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { X, Check, MapPin, Clock, Star, DollarSign } from 'lucide-react';
 import { RouteOption } from '@shared/types';
+import { DirectionsModal } from './DirectionsModal';
 
 interface RouteDisplayProps {
   routeOption: RouteOption;
@@ -9,6 +10,14 @@ interface RouteDisplayProps {
 
 export const RouteDisplay: React.FC<RouteDisplayProps> = ({ routeOption, isBest = false }) => {
   const { route, ranking, reasoning, alternativeLabel } = routeOption;
+  const [showDirections, setShowDirections] = useState(false);
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log('Route object:', route);
+    console.log('Route has legs?', 'legs' in route);
+    console.log('Route.legs value:', route.legs);
+  }, [route]);
   
   const formatDuration = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -100,9 +109,11 @@ export const RouteDisplay: React.FC<RouteDisplayProps> = ({ routeOption, isBest 
               <div className="flex-1">
                 <div className="font-medium text-gray-800">{waypoint.location.name}</div>
                 <div className="text-sm text-gray-600">{waypoint.location.address}</div>
-                <div className="text-xs text-gray-500 mt-1">
-                  Estimated stop: {waypoint.estimatedDuration} minutes
+                {/* 
+                *<div className="text-xs text-gray-500 mt-1"> }
+                  *Estimated stop: {waypoint.estimatedDuration} minutes
                 </div>
+                */}
               </div>
             </div>
           ))}
@@ -138,13 +149,25 @@ export const RouteDisplay: React.FC<RouteDisplayProps> = ({ routeOption, isBest 
 
       {/* Action Buttons */}
       <div className="flex space-x-3 mt-4">
-        <button className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+        <button
+          onClick={() => setShowDirections(true)}
+          className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
           Get Directions
         </button>
         <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
           Save Route
         </button>
       </div>
+
+      {/* Directions Modal */}
+      {showDirections && (
+        <DirectionsModal
+          legs={route.legs || []}
+          waypoints={route.waypoints}
+          onClose={() => setShowDirections(false)}
+        />
+      )}
     </div>
   );
 };

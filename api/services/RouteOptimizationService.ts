@@ -108,6 +108,7 @@ export class RouteOptimizationService {
               totalDuration: r.totalDuration,
               preferenceScore: r.preferenceScore,
               trafficFactor: 'medium',
+              legs: r.legs || [],
             }));
             const routeOptions = this.formatRouteOptions(routes, pyDirect.parsedRequest);
             return {
@@ -144,6 +145,7 @@ export class RouteOptimizationService {
             totalDuration: r.totalDuration,
             preferenceScore: r.preferenceScore,
             trafficFactor: 'medium',
+            legs: r.legs || [],
           }))
           const routeOptions = this.formatRouteOptions(routes, pyResult.parsedRequest)
           return {

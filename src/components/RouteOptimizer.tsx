@@ -49,9 +49,9 @@ export const RouteOptimizer: React.FC = () => {
   };
 
   const exampleInputs = [
-    "I want to go to the gym, get groceries at Costco Fremont, and eat at an Indian restaurant. I'm in Santa Clara, CA.",
-    "Need to run errands: go to 24/7 fitness gym, shop at Safeway, and find a coffee shop. I'm in San Jose.",
-    "I want to visit a pharmacy, get lunch at a Mexican restaurant, and go to the bank. I'm in Palo Alto."
+    "I want to go to the gym, get groceries at Costco Santa Clara, and eat at an Indian restaurant. I'm in Santa Clara, CA.",
+    "I am in San Ramon, CA. I need to go to Walmart near San Ramon for groceries. I want to go to the gym. I want to go to a chinese restaurant. I need to go to Chase bank.",
+    "I am in San Ramon, CA. I need to go to Walmart for groceries. I want to go to the gym. I want to go to a chinese restaurant."
   ];
 
   return (
