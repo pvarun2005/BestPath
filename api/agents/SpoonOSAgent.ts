@@ -24,7 +24,7 @@ export class SpoonOSAgent {
 
   constructor(config: SpoonOSConfig) {
     this.config = {
-      model: 'gemini-pro',
+      model: 'gemini-2.0-flash',
       ...config
     };
   }

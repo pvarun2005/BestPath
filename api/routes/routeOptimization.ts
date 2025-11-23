@@ -6,8 +6,8 @@ const router = express.Router();
 
 // Initialize the route optimization service
 const routeOptimizationService = new RouteOptimizationService({
-  geminiApiKey: process.env.GEMINI_API_KEY || '',
-  geminiApiUrl: process.env.GEMINI_API_URL || 'https://api.sudoapp.dev/v1/chat/completions',
+  geminiApiKey: process.env.SUDO_API_KEY || '',
+  geminiApiUrl: process.env.GEMINI_API_URL || 'https://sudoapp.dev/api/v1/chat/completions',
   mapboxAccessToken: process.env.MAPBOX_ACCESS_TOKEN || ''
 });
 
@@ -91,7 +91,7 @@ router.get('/health', (req, res) => {
     message: 'Route optimization API is healthy',
     timestamp: new Date().toISOString(),
     services: {
-      gemini: process.env.GEMINI_API_KEY ? 'configured' : 'not configured',
+      gemini: process.env.SUDO_API_KEY ? 'configured' : 'not configured',
       mapbox: process.env.MAPBOX_ACCESS_TOKEN ? 'configured' : 'not configured'
     }
   });

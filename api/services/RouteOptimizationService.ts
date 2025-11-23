@@ -4,6 +4,7 @@ import { RouteOptimizerAgent } from '../agents/RouteOptimizerAgent';
 import { MockLocationFinderAgent } from '../agents/MockLocationFinderAgent';
 import { MockRouteOptimizerAgent } from '../agents/MockRouteOptimizerAgent';
 import { ParsedUserRequest, Route, RouteOption, Location } from '@shared/types';
+import { parseIntent as pyParseIntent, health as pyHealth } from '../utils/pythonAgent';
 
 export interface RouteOptimizationServiceConfig {
   geminiApiKey: string;
@@ -16,9 +17,11 @@ export class RouteOptimizationService {
   private locationFinder: LocationFinderAgent | MockLocationFinderAgent;
   private routeOptimizer: RouteOptimizerAgent | MockRouteOptimizerAgent;
   private useMockData: boolean;
+  private usePythonAgent: boolean;
 
   constructor(config: RouteOptimizationServiceConfig) {
     this.useMockData = !config.mapboxAccessToken || config.mapboxAccessToken === 'your_mapbox_access_token_here';
+    this.usePythonAgent = (process.env.USE_PY_AGENT || 'false').toLowerCase() === 'true';
     
     this.intentParser = new IntentParserAgent(config.geminiApiKey, config.geminiApiUrl);
     
@@ -48,7 +51,46 @@ export class RouteOptimizationService {
   }> {
     try {
       console.log('🤖 Step 1: Parsing user input...');
-      const parsedRequest = await this.intentParser.parseUserInput(userInput);
+      let parsedRequest: ParsedUserRequest;
+      if (this.usePythonAgent) {
+        const pyHealthRes = await pyHealth();
+        if ((pyHealthRes as any).success === false) {
+          console.warn('Python agent health check failed, falling back to TS agent');
+          parsedRequest = await this.intentParser.parseUserInput(userInput);
+        } else {
+          const pyRes = await pyParseIntent(userInput);
+          if (!pyRes.success || !pyRes.content) {
+            console.warn('Python intent parse failed, falling back to TS agent');
+            parsedRequest = await this.intentParser.parseUserInput(userInput);
+          } else {
+            const jsonMatch = pyRes.content.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              const parsedData = JSON.parse(jsonMatch[0]);
+              parsedRequest = {
+                startingLocation: {
+                  latitude: 0,
+                  longitude: 0,
+                  address: parsedData.startingLocation,
+                  name: parsedData.startingLocation
+                },
+                tasks: (parsedData.tasks || []).map((task: any, index: number) => ({
+                  id: `task-${index}`,
+                  type: task.type,
+                  description: task.description,
+                  preferences: task.preferences || [],
+                  isMandatory: (task.preferences || []).some((p: any) => p.isMandatory) || false
+                })),
+                preferences: (parsedData.tasks || []).flatMap((task: any) => task.preferences || []),
+                optimizeFor: parsedData.optimizeFor || 'preferences'
+              };
+            } else {
+              parsedRequest = await this.intentParser.parseUserInput(userInput);
+            }
+          }
+        }
+      } else {
+        parsedRequest = await this.intentParser.parseUserInput(userInput);
+      }
       console.log('✅ Parsed request:', JSON.stringify(parsedRequest, null, 2));
 
       console.log('📍 Step 2: Finding starting location...');
