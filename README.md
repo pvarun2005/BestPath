@@ -1,57 +1,14 @@
-# React + TypeScript + Vite
+# BestPath
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+What is Best Path: BestPath is an AI driven application that lets users describe their errands or goals in natural language—like “I need groceries, gas, and a gym near San Ramon”—and automatically generates the optimal route using real-time data. Unlike traditional map apps, you don’t need exact addresses or manual reordering, and unlike pure LLMs, BestPath uses live geographic data for accurate, actionable navigation.
 
-Currently, two official plugins are available:
+How was Trae AI used: After designing the requirements of my application along with the general user workflow, I used the Solo Builder mode to help create a prototype or a base. After doing that, I switched to the Solo Coder mode which I used to help debug and iterate through my design. Even as I was deploying the application locally, you can see that the tab is labeled My Trae Project with the Trae Logo. 
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Sudo Developer API: I used sudo developer toolkit to use and get free gemini credits in my application. It helped power the natural language understanding from the user prompt, parse the prompt, and even help find locations of places.
 
-## Expanding the ESLint configuration
+Mapbox API: I used this api to help get location data along with helping optimize the routes between the desired places
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+SpoonOS: SpoonOS is being integrated in my project to help coordinate between different agents such as: IntentParserAgent - reasons about user goals, LocationFinderAgent - intelligently finds matching locations, RouteOptimizerAgent - considers tradeoffs (time vs preferences vs cost vs type of transport), PreferenceAgent - learns and remembers user preferences as the user interacts with the application
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  extends: [
-    // other configs...
-    // Enable lint rules for React
-    reactX.configs['recommended-typescript'],
-    // Enable lint rules for React DOM
-    reactDom.configs.recommended,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+Demo Video: https://app.screencastify.com/watch/Cb2TJI6Jzkzniaa10YJV?checkOrg=7770ee4d-d83f-478b-9d21-3cf335a986e8
 ```
