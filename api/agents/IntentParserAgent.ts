@@ -15,6 +15,8 @@ export class IntentParserAgent {
   }
 
   async parseUserInput(userInput: string): Promise<ParsedUserRequest> {
+    // Reset agent history to avoid contamination across requests
+    (this.agent as any).clearHistory?.();
     const systemPrompt = `You are an intelligent task parser for a route optimization application. 
     Your job is to extract tasks, locations, and preferences from natural language input.
     
@@ -66,21 +68,74 @@ export class IntentParserAgent {
       const parsedData = JSON.parse(jsonMatch[0]);
       
       // Transform to our expected format
+      const normalizedTasks = (parsedData.tasks || []).map((task: any, index: number) => ({
+        id: `task-${index}`,
+        type: task.type,
+        description: task.description,
+        preferences: task.preferences || [],
+        isMandatory: (task.preferences || []).some((p: Preference) => p.isMandatory) || false
+      }));
+
+      const text = userInput.toLowerCase();
+      const hasGroceries = /\bgrocer(y|ies)\b|\bsupermarket\b|\bwalmart\b/.test(text);
+      const hasGym = /\bgym\b|\bfitness\b|\bequinox\b|\b24\s*hour\s*fitness\b/.test(text);
+      const cuisineMatch = text.match(/\b(indian|chinese|japanese|korean|thai|mexican|italian|pizza|sushi)\b/);
+
+      const isRequired = (phrase: string) => {
+        const p = phrase.toLowerCase();
+        return /(must|only|exactly|required|have to|need to)\s+/.test(p);
+      };
+
+      if (hasGroceries && !normalizedTasks.some(t => t.type === 'groceries')) {
+        const chainReq = text.includes('walmart');
+        normalizedTasks.push({
+          id: `task-${normalizedTasks.length}`,
+          type: 'groceries',
+          description: 'Get groceries',
+          preferences: [{ type: 'chain', value: chainReq ? 'Walmart' : 'Costco', isMandatory: chainReq && isRequired('must walmart'), description: chainReq ? 'Prefer Walmart' : 'Prefer Costco' } as any],
+          isMandatory: false
+        });
+      }
+
+      if (hasGym && !normalizedTasks.some(t => t.type === 'gym')) {
+        const gymChain = text.includes('equinox') ? 'Equinox' : (text.includes('24 hour fitness') ? '24 Hour Fitness' : 'Any');
+        normalizedTasks.push({
+          id: `task-${normalizedTasks.length}`,
+          type: 'gym',
+          description: 'Go to the gym',
+          preferences: gymChain === 'Any' ? [] : [{ type: 'chain', value: gymChain, isMandatory: isRequired(`must ${gymChain}`), description: `Prefer ${gymChain}` } as any],
+          isMandatory: false
+        });
+      }
+
+      if (cuisineMatch && !normalizedTasks.some(t => t.type === 'restaurant')) {
+        normalizedTasks.push({
+          id: `task-${normalizedTasks.length}`,
+          type: 'restaurant',
+          description: `Eat at a ${cuisineMatch[1]} restaurant`,
+          preferences: [{ type: 'category', value: cuisineMatch[1][0].toUpperCase() + cuisineMatch[1].slice(1), isMandatory: isRequired(`must ${cuisineMatch[1]}`), description: `Prefer ${cuisineMatch[1]} cuisine` } as any],
+          isMandatory: false
+        });
+      }
+
+      const prefs = normalizedTasks.flatMap((task: any) => task.preferences || []);
+
+      // Extract starting location from user input if present (override LLM when explicit)
+      let startAddr = parsedData.startingLocation;
+      const startMatch = userInput.match(/\b(in|at)\s+([^,.]+,\s*[A-Z]{2})/i);
+      if (startMatch) {
+        startAddr = startMatch[2];
+      }
+
       return {
         startingLocation: {
-          latitude: 0, // Will be geocoded later
+          latitude: 0,
           longitude: 0,
-          address: parsedData.startingLocation,
-          name: parsedData.startingLocation
+          address: startAddr,
+          name: startAddr
         },
-        tasks: parsedData.tasks.map((task: any, index: number) => ({
-          id: `task-${index}`,
-          type: task.type,
-          description: task.description,
-          preferences: task.preferences || [],
-          isMandatory: task.preferences?.some((p: Preference) => p.isMandatory) || false
-        })),
-        preferences: parsedData.tasks.flatMap((task: any) => task.preferences || []),
+        tasks: normalizedTasks,
+        preferences: prefs,
         optimizeFor: parsedData.optimizeFor || 'preferences'
       };
     } catch (error) {

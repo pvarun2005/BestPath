@@ -4,7 +4,7 @@ import { RouteOptimizerAgent } from '../agents/RouteOptimizerAgent';
 import { MockLocationFinderAgent } from '../agents/MockLocationFinderAgent';
 import { MockRouteOptimizerAgent } from '../agents/MockRouteOptimizerAgent';
 import { ParsedUserRequest, Route, RouteOption, Location } from '@shared/types';
-import { parseIntent as pyParseIntent, health as pyHealth } from '../utils/pythonAgent';
+import { parseIntent as pyParseIntent, health as pyHealth, optimizeRoute as pyOptimizeRoute } from '../utils/pythonAgent';
 
 export interface RouteOptimizationServiceConfig {
   geminiApiKey: string;
@@ -89,9 +89,77 @@ export class RouteOptimizationService {
           }
         }
       } else {
-        parsedRequest = await this.intentParser.parseUserInput(userInput);
+        // TS parser may fail if LLM returns 400; fallback to Python pipeline
+        try {
+          parsedRequest = await this.intentParser.parseUserInput(userInput);
+        } catch (e) {
+          console.warn('TS intent parser failed, delegating directly to Python pipeline');
+          const pyDirect = await pyOptimizeRoute({ userInput });
+          if (pyDirect && pyDirect.success) {
+            const routes: Route[] = (pyDirect.routes || []).map((r: any) => ({
+              id: r.id,
+              waypoints: (r.stops || []).map((loc: any, idx: number) => ({
+                location: loc,
+                taskId: `task-${idx}`,
+                estimatedDuration: 30,
+                order: idx + 1,
+              })),
+              totalDistance: r.totalDistance,
+              totalDuration: r.totalDuration,
+              preferenceScore: r.preferenceScore,
+              trafficFactor: 'medium',
+            }));
+            const routeOptions = this.formatRouteOptions(routes, pyDirect.parsedRequest);
+            return {
+              success: true,
+              parsedRequest: pyDirect.parsedRequest,
+              routes: routeOptions,
+            };
+          }
+          return {
+            success: false,
+            error: (pyDirect && pyDirect.error) || 'Failed to parse user input',
+          };
+        }
       }
       console.log('✅ Parsed request:', JSON.stringify(parsedRequest, null, 2));
+
+      if (this.usePythonAgent) {
+        console.log('🛣️  Delegating optimization to Python agent...');
+        console.log(`🧩 Tasks to optimize: ${parsedRequest.tasks.length}`);
+        const pyResult = await pyOptimizeRoute({
+          startingAddress: parsedRequest.startingLocation.address,
+          tasks: parsedRequest.tasks
+        });
+        if (pyResult && pyResult.success) {
+          const routes: Route[] = (pyResult.routes || []).map((r: any) => ({
+            id: r.id,
+            waypoints: (r.stops || []).map((loc: any, idx: number) => ({
+              location: loc,
+              taskId: `task-${idx}`,
+              estimatedDuration: 30,
+              order: idx + 1,
+            })),
+            totalDistance: r.totalDistance,
+            totalDuration: r.totalDuration,
+            preferenceScore: r.preferenceScore,
+            trafficFactor: 'medium',
+          }))
+          const routeOptions = this.formatRouteOptions(routes, pyResult.parsedRequest)
+          return {
+            success: true,
+            parsedRequest: pyResult.parsedRequest,
+            routes: routeOptions,
+          }
+        } else if (pyResult && pyResult.error) {
+          return {
+            success: false,
+            error: pyResult.error,
+          };
+        } else {
+          console.warn('Python optimization failed, falling back to Node optimization')
+        }
+      }
 
       console.log('📍 Step 2: Finding starting location...');
       const startingLocation = await this.locationFinder.findStartingLocation(

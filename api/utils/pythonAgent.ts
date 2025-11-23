@@ -28,3 +28,8 @@ export async function health(): Promise<{ success: boolean; sudo: string } | { s
     return { success: false, error: e instanceof Error ? e.message : 'Unknown error' }
   }
 }
+
+export async function optimizeRoute(payload: any): Promise<any>{
+  const res = await axios.post(`${baseUrl}/optimize-route`, payload)
+  return res.data
+}

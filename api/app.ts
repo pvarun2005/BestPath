@@ -11,6 +11,10 @@ import cors from 'cors'
 import path from 'path'
 import dotenv from 'dotenv'
 import { fileURLToPath } from 'url'
+
+// load env BEFORE importing routes (ESM evaluates imports first)
+dotenv.config()
+
 import authRoutes from './routes/auth.js'
 import routeOptimizationRoutes from './routes/routeOptimization.js'
 
@@ -18,8 +22,7 @@ import routeOptimizationRoutes from './routes/routeOptimization.js'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-// load env
-dotenv.config()
+// env already loaded above
 
 const app: express.Application = express()
 

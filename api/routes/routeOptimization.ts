@@ -1,3 +1,5 @@
+import dotenv from 'dotenv';
+dotenv.config();
 import express from 'express';
 import { RouteOptimizationService } from '../services/RouteOptimizationService';
 import { RouteOption } from '../../shared/types';

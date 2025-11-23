@@ -1,4 +1,6 @@
 // Configuration utility for Sudo.dev Gemini API
+import dotenv from 'dotenv'
+dotenv.config()
 
 export interface SudoConfig {
   apiKey: string;
