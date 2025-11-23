@@ -124,13 +124,6 @@ export default function Home() {
           <p className="text-lg text-gray-600 mb-8">
             Join the future of route planning with AI-powered optimization.
           </p>
-          <Link
-            to="/optimizer"
-            className="inline-flex items-center px-8 py-4 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-lg"
-          >
-            Get Started Now
-            <ArrowRight className="w-5 h-5 ml-2" />
-          </Link>
         </div>
       </div>
     </div>

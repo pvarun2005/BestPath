@@ -125,6 +125,11 @@ def deduplicate_locations(locations, min_distance_meters=50):
     return deduped
 
 def geocode_address(address):
+    """
+    Geocode an address and extract the business name from it.
+    The address format from Gemini is: "Business Name, Street Address, City, State ZIP"
+    We want to preserve the business name, not use Mapbox's text field.
+    """
     if not MAPBOX_TOKEN:
         return None
     params = {
@@ -140,11 +145,16 @@ def geocode_address(address):
     if not features:
         return None
     f = features[0]
+
+    # Extract business name from the original address (before the first comma)
+    # Format: "Business Name, Street Address, City, State ZIP"
+    business_name = address.split(",")[0].strip() if "," in address else f.get("text", address)
+
     return {
         "latitude": f["center"][1],
         "longitude": f["center"][0],
         "address": f.get("place_name", address),
-        "name": f.get("text", address)
+        "name": business_name  # Use the business name from Gemini instead of Mapbox's street name
     }
 
 def optimized_trip(coords, source_first=True, destination_last=False):

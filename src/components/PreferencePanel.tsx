@@ -103,7 +103,6 @@ export const PreferencePanel: React.FC<PreferencePanelProps> = ({ parsedRequest,
               </div>
             )}
           </div>
-
           {/* Optimization Goal */}
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-3">Optimization Goal</h3>
@@ -116,23 +115,12 @@ export const PreferencePanel: React.FC<PreferencePanelProps> = ({ parsedRequest,
               </div>
             </div>
           </div>
-
-          {/* Actions */}
-          <div className="flex space-x-3">
-            <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Preference
-            </button>
-            <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-              Edit Tasks
-            </button>
-          </div>
         </div>
 
         {/* Footer */}
         <div className="p-6 border-t bg-gray-50">
           <div className="text-sm text-gray-600">
-            <p className="mb-2">💡 <strong>Tip:</strong> Use specific location names for mandatory preferences (e.g., "Costco Fremont") and general terms for flexible preferences (e.g., "24/7 gym").</p>
+            <p className="mb-2">💡 <strong>Tip:</strong> Use specific location names for mandatory preferences (e.g., "Costco Santa Clara") and general terms for flexible preferences (e.g., "24/7 gym").</p>
             <p>🤖 These preferences were automatically extracted from your input and can be edited before route generation.</p>
           </div>
         </div>
